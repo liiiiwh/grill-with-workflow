@@ -1,6 +1,6 @@
 ---
 name: grill-with-workflow
-description: Coordinate project iterations with grill, documentation before planning, TDD, optional SubAgents, and mandatory cleanup. Use to initialize project knowledge, take over a project, or implement requirements while keeping terminology, architecture, and business logic current.
+description: Coordinate project iterations with documentation before planning, root-cause fixes instead of speculative fallbacks, TDD, optional SubAgents, and mandatory cleanup. Use to initialize project knowledge, take over a project, or implement requirements while keeping terminology, architecture, and business logic current.
 ---
 
 # Grill With Workflow
@@ -103,6 +103,49 @@ affected paths. Record unrelated legacy problems for follow-up rather than
 turning every request into a repository-wide rewrite. Uncommitted or untracked
 user work is not garbage; never discard it as part of cleanup.
 
+## Prevent Fallback Accumulation During Implementation
+
+These rules apply whenever this skill is invoked, to Main Agent and every
+worker, throughout implementation and repair. Do not defer them to cleanup.
+
+- Start from the documented contract and one canonical implementation path.
+  Fix invalid data or broken invariants at their source, or report an explicit
+  error at the appropriate boundary. Do not silently invent successful results.
+- Before adding a fallback, identify the observed failure or explicit contract
+  requiring it, its owner, trigger, recovery behavior, and verification. If
+  these cannot be established, investigate instead of adding defensive code.
+  Record material recovery semantics in LOGIC.md before implementing them.
+- Recovery belongs at the layer that can make the decision. Do not repeat
+  validation, defaults, catches, or retries across layers for the same failure.
+  Multiple recovery paths require distinct documented cases; never add another
+  fallback merely because the previous workaround failed.
+- Do not add speculative compatibility branches, catch-all exception handlers
+  returning empty data, optional chaining to conceal required values, or chains
+  of defaults without a defined meaning. For example, replacing a required
+  configuration error with `config.value ?? cachedValue ?? ""` needs an explicit
+  contract; making a test stop throwing is not sufficient justification.
+- A retry must address a recoverable failure, have finite attempt/time bounds,
+  and a defined exhaustion result. Check whether the operation can safely be
+  repeated, including whether it has side effects. Account for retries in
+  callers and dependencies so independent layers do not multiply attempts.
+  Never respond to retry exhaustion by silently adding an outer retry loop.
+- When a change fails, reproduce the failing behavior, inspect the evidence,
+  and revise the root-cause hypothesis. Remove or revise the failed workaround
+  instead of leaving it in place and layering another patch on top. After two
+  consecutive unsuccessful fixes for the same failure, stop patching and
+  re-diagnose from a minimal reproduction before attempting another change.
+  If essential evidence is unavailable, report the blocker rather than invent
+  more branches. This limit concerns patch accumulation, not normal TDD cycles.
+- Use TDD to cover the intended behavior. For required recovery logic, verify
+  its trigger, successful recovery, and exhaustion/error behavior as applicable.
+  Keep errors observable; do not weaken tests or swallow failures to obtain green.
+
+Pass these constraints explicitly with delegated tasks. Review each returned
+diff for unjustified catches, defaults, retries, and compatibility paths before
+integration. Reject accumulation of workarounds as unfinished work even when
+happy-path tests pass. Explain retained non-obvious recovery behavior in the
+final review, and remove superseded workarounds during the cleanup task.
+
 ## Task Planning and Final Cleanup
 
 After updating project knowledge, list behavior-oriented implementation tasks
@@ -157,6 +200,7 @@ Avoid spawning for:
 Before spawning:
 - documents reflect verified current behavior and the agreed planned changes
 - each task names its file/module scope, dependencies, and acceptance criteria
+- each worker receives the fallback-prevention rules and relevant contracts
 - no file ownership overlap
 - no module ownership overlap
 - no architecture conflict
@@ -219,6 +263,8 @@ Main Agent validates:
 - tests
 - the final cleanup task completed after integration
 - verified in-scope quality findings were resolved and behavior preserved
+- new recovery paths have documented reasons, bounded retries where applicable,
+  and verified failure behavior; superseded workarounds were removed
 - all three project documents agree with the final implementation
 - each Worker returned a result
 - selected `agentName`, route, Provider, and upstream model match the selector output when execution metadata is available

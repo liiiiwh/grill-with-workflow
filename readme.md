@@ -9,12 +9,18 @@
 基于 `grill-me` 的追问与设计澄清方式，增加面向 workflow 多 Agent 调度的协作规则。由主 Agent 负责项目治理、任务分配、监督与最终验收：
 
 - **澄清需求**：必要时通过追问（grill）确认需求和设计中的关键决策。
-- **沉淀项目知识**：按需维护 `CONTEXT.md`（领域术语）、`ARCHITECTURE.md`（模块边界与依赖）、`LOGIC.md`（流程、状态与业务规则）。
+- **文档先行**：每次接受需求，先自动读取 `CONTEXT.md`（领域术语）、`ARCHITECTURE.md`（模块边界与依赖）、`LOGIC.md`（流程、状态与业务规则）；缺失时根据代码、配置和测试创建。核实并更新相关内容后，才列任务、进入 TDD 或委派 SubAgents。
+- **扫描代码质量**：检查本次需求涉及的代码与直接依赖，识别死代码、重复逻辑、冗余兜底、深层循环与条件嵌套、循环依赖和职责耦合。
 - **控制委派范围**：只有存在多个边界清晰、可独立执行的任务时才使用 SubAgents；简单或顺序任务由主 Agent 直接完成。
 - **隔离职责**：避免文件和模块归属重叠；SubAgents 读取项目知识、执行任务并使用 TDD，冲突交回主 Agent。
 - **监督与验收**：检查进展、阻塞、范围偏移和架构冲突，并依据需求、业务逻辑与测试验收结果。
+- **强制收尾任务**：N 个实现任务后追加第 N+1 个“清理、文档同步与验证”任务，等待全部实现整合后执行。清理本轮引入及影响范围内确认的问题，重新验证行为并同步三份文档。
 
 随技能提供领域、架构、业务逻辑和 ADR 的文档格式参考。
+
+每轮执行顺序：**读取文档与代码 → 澄清需求并扫描代码质量 → 更新文档 → 列任务 → TDD / SubAgent 实现 → 整合与清理 → 文档同步及验证验收**。
+
+文档明确区分当前实现与已确定但尚未实现的变更；执行中发现术语、架构或逻辑变化，由主 Agent 及时更新，再调整后续任务。清理以代码和行为证据为依据，保留必要的错误处理与兼容逻辑，避免无关重构，也不把用户未提交的改动视为垃圾。
 
 ### tdd
 
@@ -75,8 +81,14 @@ npx skills add liiiiwh/grill-with-workflow --list
 安装后，在支持技能的编程助手中明确指定技能：
 
 ```text
+使用 grill-with-workflow，初始化当前项目的知识文档。
+```
+
+```text
 使用 grill-with-workflow 实现订单取消功能，先梳理需求、领域术语和业务规则，再决定是否需要拆分任务。
 ```
+
+调用技能后会自动执行文档读取、缺失文档创建及更新流程，无需每次重复指定三个文件名。
 
 ```text
 使用 tdd 为购物车增加优惠券功能，先确认关键行为，然后逐个完成 Red → Green → Refactor。
@@ -116,6 +128,6 @@ npx skills add liiiiwh/grill-with-workflow --list
 
 本项目采用 [Apache License 2.0](LICENSE)。每个技能目录附带许可证，方便单独安装和分发。
 
-两个技能及其参考文件从本地已有版本完整打包。`grill-with-workflow` 基于 `grill-me`，针对 workflow 多 Agent 调度优化，重点覆盖任务拆分、职责隔离、运行监督与结果验收。`grill-me` 与 `tdd` 的上游均来自 [Matt Pocock 的 skills](https://github.com/mattpocock/skills)。
+两个技能及其参考文件最初从本地已有版本打包，后续在本仓库迭代维护。`grill-with-workflow` 基于 `grill-me`，针对 workflow 多 Agent 调度优化，重点覆盖文档先行、任务拆分、职责隔离、运行监督、收尾清理与结果验收。`grill-me` 与 `tdd` 的上游均来自 [Matt Pocock 的 skills](https://github.com/mattpocock/skills)。
 
 上游内容保留 MIT 许可证及版权声明，详见 [grill-with-workflow 第三方声明](skills/grill-with-workflow/THIRD-PARTY-NOTICES.txt) 与 [tdd 第三方声明](skills/tdd/THIRD-PARTY-NOTICES.txt)。

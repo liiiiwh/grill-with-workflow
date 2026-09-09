@@ -1,6 +1,6 @@
 ---
 name: grill-with-workflow
-description: Coordinate project iterations with documentation before planning, root-cause fixes instead of speculative fallbacks, TDD, optional SubAgents, and mandatory cleanup. Use to initialize project knowledge, take over a project, or implement requirements while keeping terminology, architecture, and business logic current.
+description: Coordinate project iterations with grill-driven design clarification, documentation before planning, the tdd skill, SubAgent delegation, and mandatory cleanup. Use to initialize project knowledge, take over a project, or implement requirements while preventing speculative fallbacks and keeping project knowledge current.
 ---
 
 # Grill With Workflow
@@ -9,6 +9,10 @@ description: Coordinate project iterations with documentation before planning, r
 
 Main Agent is the project governance layer.
 SubAgents are temporary execution workers.
+
+Grill, execution through the `tdd` skill, and SubAgent orchestration are core
+capabilities. Documentation and cleanup support this workflow; they do not
+replace design clarification, test-first implementation, or useful delegation.
 
 Persistent project knowledge:
 - CONTEXT.md
@@ -31,8 +35,27 @@ Responsibilities:
 2. Clarify requirements and scan relevant code quality problems.
 3. Update project knowledge before listing implementation tasks.
 4. Plan work, including a final cleanup task, and decide delegation.
-5. Implement with TDD or supervise workers using TDD.
+5. Invoke the `tdd` skill directly or delegate to workers that invoke it.
 6. Integrate, clean up, synchronize documents, and accept results.
+
+## Grill Requirements and Design
+
+Before finalizing the documents and task plan, examine the requirement against
+the code and project knowledge. Walk through unresolved design branches and
+their dependencies: intended behavior, public interfaces, business constraints,
+module ownership, failure semantics, and acceptance criteria.
+
+Investigate questions that the code can answer yourself. For decisions that
+need the user, ask one focused question at a time, include a recommended answer
+and its tradeoff, and follow the consequences until you reach shared
+understanding. Use established answers; do not repeatedly reopen settled
+decisions or ask questions just to perform a ritual.
+
+Record decisions in the appropriate project document as they crystallize.
+Do not replace grill with a generic summary, silently invent consequential
+requirements, or declare an unresolved design ready for implementation.
+Workers perform a lightweight grill of their assigned task and return
+cross-module or product decisions to Main Agent, which coordinates user input.
 
 ## Documentation Before Every Iteration
 
@@ -146,6 +169,38 @@ integration. Reject accumulation of workarounds as unfinished work even when
 happy-path tests pass. Explain retained non-obvious recovery behavior in the
 final review, and remove superseded workarounds during the cleanup task.
 
+## Execution Through the TDD Skill
+
+Every behavior-changing implementation task must use the installed `tdd`
+skill. Locate and read its SKILL.md and applicable references before coding;
+do not treat the words "use TDD" in this document as a substitute for loading
+and following that skill. The companion `tdd` skill is distributed in this
+repository and should be installed alongside `grill-with-workflow`.
+
+Choose and record the execution route for each task:
+- **Main Agent + tdd skill:** Main Agent loads and follows `tdd` directly for
+  a single task, sequential work, or work unsuitable for delegation.
+- **SubAgent + tdd skill:** Main Agent delegates independent tasks under the
+  policy below. Each worker loads and follows `tdd` in its own context; the
+  parent's loaded skill must not be assumed to transfer automatically.
+
+Delegation changes who implements the behavior; it does not waive TDD. Pass
+the resolved skill location or an accessible copy of its instructions and
+required references with each task, together with contracts and acceptance
+criteria. If the skill cannot be accessed, report the missing dependency;
+do not silently substitute implementation-first work or claim the skill ran.
+
+Follow the skill's incremental Red → Green → Refactor workflow: one failing
+behavior test, the minimum implementation to pass, then the next behavior.
+Confirm that a RED failure is caused by the missing behavior, not a broken
+test environment. Do not write all implementation first and add tests later.
+Workers return relevant RED/GREEN evidence, final checks, remaining issues,
+and proposed document updates for Main Agent's acceptance.
+
+Documentation-only tasks do not require artificial code tests. For refactoring
+that preserves behavior, establish or supplement behavior coverage before
+changing the code, then keep it green under the `tdd` skill's refactoring rules.
+
 ## Task Planning and Final Cleanup
 
 After updating project knowledge, list behavior-oriented implementation tasks
@@ -185,10 +240,15 @@ If only one meaningful task exists:
 - Main Agent handles it directly.
 - Do not create a SubAgent.
 
-Spawn SubAgents only when:
+Use SubAgents when the host supports them and all these conditions hold:
 - multiple independent tasks exist.
 - boundaries are clear.
 - parallel execution improves efficiency.
+
+Assess this route for every task plan. Do not default to doing all work alone
+when independent tasks meet these conditions. If the host lacks delegation,
+state that limitation and use Main Agent + `tdd`; do not simulate workers or
+claim parallel execution occurred.
 
 Avoid spawning for:
 - small fixes
@@ -200,6 +260,7 @@ Avoid spawning for:
 Before spawning:
 - documents reflect verified current behavior and the agreed planned changes
 - each task names its file/module scope, dependencies, and acceptance criteria
+- each worker can load the `tdd` skill and its applicable references
 - each worker receives the fallback-prevention rules and relevant contracts
 - no file ownership overlap
 - no module ownership overlap
@@ -220,7 +281,7 @@ Forbidden:
 SubAgents:
 - read project knowledge
 - perform lightweight grill
-- use TDD
+- load and follow the `tdd` skill, including applicable references
 - implement task
 - keep assigned code clean and report quality findings and document changes
 
@@ -257,6 +318,9 @@ Ask human only for real design decisions.
 ## Acceptance
 
 Main Agent validates:
+- consequential design questions were resolved through grill and documented
+- every implementation task followed its selected execution route and `tdd`
+- delegated work includes behavior-test evidence and was supervised
 - requirements
 - architecture
 - logic

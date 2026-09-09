@@ -1,334 +1,137 @@
 ---
 name: grill-with-workflow
-description: Coordinate project iterations with grill-driven design clarification, documentation before planning, the tdd skill, SubAgent delegation, and mandatory cleanup. Use to initialize project knowledge, take over a project, or implement requirements while preventing speculative fallbacks and keeping project knowledge current.
+description: Coordinate project iterations with grill, documentation before planning, the tdd skill, SubAgent delegation, and mandatory cleanup. Use to initialize or take over projects and implement requirements with visible errors, reuse, backward compatibility, and no speculative fallbacks.
 ---
 
 # Grill With Workflow
 
-## Core Principle
+Main Agent owns project governance, decisions, shared knowledge, and acceptance.
+SubAgents are temporary execution workers. Grill, the `tdd` skill, and useful
+SubAgent delegation remain core capabilities; documentation and cleanup support them.
 
-Main Agent is the project governance layer.
-SubAgents are temporary execution workers.
+## Required Reading
 
-Grill, execution through the `tdd` skill, and SubAgent orchestration are core
-capabilities. Documentation and cleanup support this workflow; they do not
-replace design clarification, test-first implementation, or useful delegation.
+- On every requirement, read root `CONTEXT.md`, `ARCHITECTURE.md`, and `LOGIC.md`.
+  Create missing files using the process below; do not wait for a separate request.
+- Before the quality scan, task planning, or coding, read
+  [code-quality.md](references/code-quality.md). Every coding worker must read it too.
+- Before delegating, read [subagents.md](references/subagents.md) and pass it to workers.
+- Before behavior-changing implementation, the executor must locate and read the
+  installed `tdd` skill and its applicable references. Install it alongside this skill.
+  If inaccessible, report the missing dependency; do not silently code without it.
 
-Persistent project knowledge:
-- CONTEXT.md
-- ARCHITECTURE.md
-- LOGIC.md
+## 1. Understand and Grill
 
-Do not create unnecessary intermediate documents.
+Read the project knowledge and inspect relevant code, configuration, and tests.
+Resolve questions the repository can answer yourself. Walk unresolved design
+branches and their dependencies: behavior, public interfaces, business rules,
+module ownership, failure semantics, compatibility, and acceptance criteria.
 
-## Main Agent
+For decisions needing the user, ask one focused question at a time, provide a
+recommended answer and its tradeoff, and follow its consequences until shared
+understanding is reached. Do not reopen settled decisions or invent consequential
+requirements. Record decisions in the appropriate document as they crystallize.
+Grill is substantive design clarification, not a generic requirements summary.
 
-Available:
-- grill
-- workflow
-- subagent
-- tdd
-- loop
+## 2. Update Knowledge Before Listing Tasks
 
-Responsibilities:
-1. Read project knowledge and inspect the current code.
-2. Clarify requirements and scan relevant code quality problems.
-3. Update project knowledge before listing implementation tasks.
-4. Plan work, including a final cleanup task, and decide delegation.
-5. Invoke the `tdd` skill directly or delegate to workers that invoke it.
-6. Integrate, clean up, synchronize documents, and accept results.
+Create missing documents from verified code, tests, configuration, and available
+project explanations, using these references:
+- [CONTEXT.md format](CONTEXT-FORMAT.md): domain terms, entities, naming rules.
+- [ARCHITECTURE.md format](ARCHITECTURE-FORMAT.md): boundaries, ownership, dependencies.
+- [LOGIC.md format](LOGIC-FORMAT.md): workflows, states, rules, errors, and edge cases.
 
-## Grill Requirements and Design
+Include useful code paths. Mark unknowns and inferences explicitly. For an empty
+project, record known scope and unresolved choices; do not invent implementation
+or historical decisions. Use [ADR guidance](ADR-FORMAT.md) only when warranted.
 
-Before finalizing the documents and task plan, examine the requirement against
-the code and project knowledge. Walk through unresolved design branches and
-their dependencies: intended behavior, public interfaces, business constraints,
-module ownership, failure semantics, and acceptance criteria.
+Search for existing capabilities and scan affected code plus direct callers,
+dependencies, and tests under the quality reference. Check repository status and
+the current diff to distinguish this iteration from pre-existing user work.
+Use findings and grill decisions to update affected documents **before listing
+implementation tasks, starting TDD, or delegating**. Separate verified current
+behavior from agreed changes marked **planned, not yet implemented**.
 
-Investigate questions that the code can answer yourself. For decisions that
-need the user, ask one focused question at a time, include a recommended answer
-and its tradeoff, and follow the consequences until you reach shared
-understanding. Use established answers; do not repeatedly reopen settled
-decisions or ask questions just to perform a ritual.
+Review accurate, unaffected documents without cosmetic edits. If scope or design
+changes during execution, Main Agent updates the documents before replanning or
+assigning dependent work. Workers report proposed updates to Main Agent.
+Do not create unnecessary intermediate documents. For documentation-only requests,
+finish with document/reference checks; do not manufacture implementation tasks.
 
-Record decisions in the appropriate project document as they crystallize.
-Do not replace grill with a generic summary, silently invent consequential
-requirements, or declare an unresolved design ready for implementation.
-Workers perform a lightweight grill of their assigned task and return
-cross-module or product decisions to Main Agent, which coordinates user input.
+## 3. Plan and Select Execution Routes
 
-## Documentation Before Every Iteration
+List behavior-oriented tasks with owners, file/module scope, dependencies, and
+acceptance criteria. Include quality findings with locations, reasons, and checks.
+Identify the existing implementation to reuse or extend for each capability.
 
-For every new requirement or iteration, Main Agent must read the three
-documents at the project root before planning or implementation. Do not wait
-for the user to name them or request initialization.
+Select a route for every implementation task:
+- **Main Agent + tdd skill:** single tasks, sequential work, or overlapping core changes.
+- **SubAgent + tdd skill:** use when the host supports delegation and multiple tasks
+  have independent ownership, clear boundaries, and a benefit from parallel work.
 
-- [CONTEXT.md format](CONTEXT-FORMAT.md): domain terminology, entity definitions,
-  and naming rules.
-- [ARCHITECTURE.md format](ARCHITECTURE-FORMAT.md): module boundaries, ownership,
-  dependencies, and system structure.
-- [LOGIC.md format](LOGIC-FORMAT.md): workflows, states, business rules, and edge cases.
+Evaluate delegation every iteration; do not do everything alone when these conditions
+hold. If delegation is unavailable, state the limitation and use Main Agent + `tdd`.
+Do not simulate workers. Delegation changes the executor, never the TDD requirement.
+Follow the delegation, isolation, and supervision rules in the required reference.
 
-Create any missing document from the existing code, configuration, tests, and
-available project explanations. Include useful code paths. Mark unknowns and
-inferences explicitly; do not invent business rules or historical decisions.
-For an empty project, record the known scope and unresolved choices instead
-of inventing an implementation.
+For N implementation tasks, append task N+1: **Cleanup, documentation synchronization,
+and verification**. Name concrete cleanup targets; if none were found, still review
+the integrated result. This task depends on all implementation work and integration;
+it does not create an independent task merely to justify spawning another worker.
 
-Before listing tasks, verify relevant documented facts against the code,
-perform the quality scan below, clarify material design questions, and update
-the affected documents. Keep current behavior separate from agreed changes
-that are **planned, not yet implemented**. If a document is already accurate
-and unaffected, review it without making cosmetic edits.
+## 4. Implement Under the Quality Contract
 
-Only after this documentation pass may Main Agent list implementation tasks,
-start TDD, or delegate work. If scope or design changes during execution,
-update the affected documents before replanning or assigning dependent work.
-Use [ADR guidance](ADR-FORMAT.md) only for decisions that warrant an ADR.
+Every executor loads and follows `tdd`; saying "use TDD" is insufficient. Do not
+assume a parent's loaded skills transfer to workers. Provide accessible skill paths
+or instructions and required references with each assignment.
 
-Keep documents current during the work, not just at handoff. Main Agent owns
-all three documents; workers report findings and proposed changes to it.
-At completion, reconcile planned changes with the actual implementation,
-remove superseded statements, and retain explicit unresolved items.
+Use incremental Red → Green → Refactor through public behavior. Confirm RED fails
+for the missing behavior, not broken setup. Do not implement everything before tests.
+For behavior-preserving refactors, establish or supplement coverage, then keep it green.
+Documentation-only work needs no artificial code tests.
 
-For a documentation-only initialization request, perform this process and
-review the resulting documents; do not manufacture implementation tasks.
+The detailed quality reference is mandatory; these rules always apply:
+- **Errors reach users:** propagate every error to the top-level interaction boundary;
+  provide a user-visible failure or recovery status. No swallowed errors, log-only
+  failures, or fake success. Lower modules propagate structured errors, not UI effects.
+- **Reuse before adding:** search existing implementations and callers first. Reuse or
+  extend one owning module; never rewrite the same capability in another module.
+- **Backward compatibility:** preserve supported caller contracts and observable behavior
+  while extending existing capabilities; verify old and new callers. A deliberate
+  breaking change requires an explicit user decision and a migration plan.
+- **Keep modules decoupled:** use public interfaces and clear ownership, not circular
+  dependencies or access to another module's internals. Avoid redundant wrappers,
+  unnecessary deep loops/conditionals, and repeated work inside loops.
+- **No speculative fallbacks:** require a concrete failure or explicit contract,
+  a responsible layer, recovery semantics, and verification before adding recovery.
+  Retries must be finite; do not multiply retries or defaults across layers.
+- **Fix causes, not patch chains:** remove superseded workarounds. After two unsuccessful
+  fixes of the same failure, stop patching and return to a minimal reproduction and
+  a revised diagnosis. This does not count normal TDD RED/GREEN cycles as failed fixes.
 
-## Code Quality Scan
+Keep documentation current when decisions change. Workers perform lightweight grill
+within their assignments and return cross-module or product decisions to Main Agent.
 
-On each iteration, inspect the code involved in the requirement and its
-direct callers, dependencies, and tests. Use the current diff and repository
-status to distinguish pre-existing work from this iteration's changes.
+## 5. Integrate, Clean Up, and Accept
 
-Look for concrete cleanup candidates:
-- Dead or unreachable code, unused imports, duplicate implementations,
-  abandoned branches, and temporary debugging or generated artifacts.
-- Redundant fallback chains, defaults that hide invalid states, swallowed
-  errors, and compatibility paths whose consumers no longer exist.
-- Deeply nested loops or conditionals, repeated scans or I/O inside loops,
-  and tangled control flow that obscures business rules.
-- Circular dependencies, module boundary violations, duplicated business
-  rules, and wrappers or abstractions that add no useful responsibility.
+Main Agent supervises active workers and reviews their results before integration.
+After all implementation is integrated and every worker has returned, execute N+1:
+1. Rescan the integrated diff and affected paths. Resolve verified dead code, duplicated
+   capability, redundant fallbacks, temporary artifacts, nesting, and coupling problems.
+2. Verify error propagation and user-visible outcomes, reuse of the owning implementation,
+   backward compatibility, and required recovery behavior under the quality reference.
+3. Refactor with green tests, then rerun affected tests and applicable project lint,
+   type, and build checks after final edits. Do not weaken tests to hide failures.
+4. Reconcile all three documents with actual code. Remove superseded statements and
+   stale planned status; keep genuine unresolved items explicit and links accurate.
+5. Review repository status and report actual changes, cleanup, verification, and blockers.
 
-Record actionable findings in the task plan with locations, reasons, and
-verification needs. Scan first, but wait until the documentation pass is
-complete before publishing the task list. Avoid a separate audit document.
-Scan again after integration, since combined changes may introduce new issues.
+Preserve necessary error handling and compatibility; do not delete code merely because
+it is nested or defensive. Clean this iteration's additions and verified problems in
+affected paths; record unrelated legacy debt without expanding into a repository rewrite.
+Uncommitted or untracked user work is not garbage. Do not discard it during cleanup.
 
-Assess behavior and callers before removing code. A fallback or nested loop
-is not automatically redundant: preserve required error handling,
-compatibility, ordering, and business semantics. Prefer simpler control flow,
-appropriate data structures, and clear module boundaries; do not merely move
-complexity into new helpers or introduce speculative abstraction layers.
-
-Clean problems introduced by this iteration and verified issues within its
-affected paths. Record unrelated legacy problems for follow-up rather than
-turning every request into a repository-wide rewrite. Uncommitted or untracked
-user work is not garbage; never discard it as part of cleanup.
-
-## Prevent Fallback Accumulation During Implementation
-
-These rules apply whenever this skill is invoked, to Main Agent and every
-worker, throughout implementation and repair. Do not defer them to cleanup.
-
-- Start from the documented contract and one canonical implementation path.
-  Fix invalid data or broken invariants at their source, or report an explicit
-  error at the appropriate boundary. Do not silently invent successful results.
-- Before adding a fallback, identify the observed failure or explicit contract
-  requiring it, its owner, trigger, recovery behavior, and verification. If
-  these cannot be established, investigate instead of adding defensive code.
-  Record material recovery semantics in LOGIC.md before implementing them.
-- Recovery belongs at the layer that can make the decision. Do not repeat
-  validation, defaults, catches, or retries across layers for the same failure.
-  Multiple recovery paths require distinct documented cases; never add another
-  fallback merely because the previous workaround failed.
-- Do not add speculative compatibility branches, catch-all exception handlers
-  returning empty data, optional chaining to conceal required values, or chains
-  of defaults without a defined meaning. For example, replacing a required
-  configuration error with `config.value ?? cachedValue ?? ""` needs an explicit
-  contract; making a test stop throwing is not sufficient justification.
-- A retry must address a recoverable failure, have finite attempt/time bounds,
-  and a defined exhaustion result. Check whether the operation can safely be
-  repeated, including whether it has side effects. Account for retries in
-  callers and dependencies so independent layers do not multiply attempts.
-  Never respond to retry exhaustion by silently adding an outer retry loop.
-- When a change fails, reproduce the failing behavior, inspect the evidence,
-  and revise the root-cause hypothesis. Remove or revise the failed workaround
-  instead of leaving it in place and layering another patch on top. After two
-  consecutive unsuccessful fixes for the same failure, stop patching and
-  re-diagnose from a minimal reproduction before attempting another change.
-  If essential evidence is unavailable, report the blocker rather than invent
-  more branches. This limit concerns patch accumulation, not normal TDD cycles.
-- Use TDD to cover the intended behavior. For required recovery logic, verify
-  its trigger, successful recovery, and exhaustion/error behavior as applicable.
-  Keep errors observable; do not weaken tests or swallow failures to obtain green.
-
-Pass these constraints explicitly with delegated tasks. Review each returned
-diff for unjustified catches, defaults, retries, and compatibility paths before
-integration. Reject accumulation of workarounds as unfinished work even when
-happy-path tests pass. Explain retained non-obvious recovery behavior in the
-final review, and remove superseded workarounds during the cleanup task.
-
-## Execution Through the TDD Skill
-
-Every behavior-changing implementation task must use the installed `tdd`
-skill. Locate and read its SKILL.md and applicable references before coding;
-do not treat the words "use TDD" in this document as a substitute for loading
-and following that skill. The companion `tdd` skill is distributed in this
-repository and should be installed alongside `grill-with-workflow`.
-
-Choose and record the execution route for each task:
-- **Main Agent + tdd skill:** Main Agent loads and follows `tdd` directly for
-  a single task, sequential work, or work unsuitable for delegation.
-- **SubAgent + tdd skill:** Main Agent delegates independent tasks under the
-  policy below. Each worker loads and follows `tdd` in its own context; the
-  parent's loaded skill must not be assumed to transfer automatically.
-
-Delegation changes who implements the behavior; it does not waive TDD. Pass
-the resolved skill location or an accessible copy of its instructions and
-required references with each task, together with contracts and acceptance
-criteria. If the skill cannot be accessed, report the missing dependency;
-do not silently substitute implementation-first work or claim the skill ran.
-
-Follow the skill's incremental Red → Green → Refactor workflow: one failing
-behavior test, the minimum implementation to pass, then the next behavior.
-Confirm that a RED failure is caused by the missing behavior, not a broken
-test environment. Do not write all implementation first and add tests later.
-Workers return relevant RED/GREEN evidence, final checks, remaining issues,
-and proposed document updates for Main Agent's acceptance.
-
-Documentation-only tasks do not require artificial code tests. For refactoring
-that preserves behavior, establish or supplement behavior coverage before
-changing the code, then keep it green under the `tdd` skill's refactoring rules.
-
-## Task Planning and Final Cleanup
-
-After updating project knowledge, list behavior-oriented implementation tasks
-with ownership and acceptance criteria. For N implementation tasks, always
-append task N+1: **Cleanup, documentation synchronization, and verification**.
-Name the concrete cleanup targets found in the scan; if none were found, the
-final task still checks the integrated result and documents that outcome.
-
-This final task depends on all implementation tasks and their integration.
-Do not run it concurrently with workers still changing the same code. Its
-presence does not make an otherwise sequential request eligible for delegation.
-
-Main Agent performs the final task once implementation is integrated and all
-workers, if any, have returned:
-1. Review the integrated diff and affected paths against the initial findings.
-2. Remove verified dead code, duplication, redundant fallbacks, and temporary
-   artifacts; simplify unnecessary nesting and resolve affected coupling issues.
-3. Refactor while relevant tests are green. Add behavior coverage first where
-   needed to protect a cleanup, then rerun affected tests and applicable project
-   lint, type, and build checks after the final edits. Documentation-only work
-   needs document and reference checks, not invented code tests.
-4. Synchronize terminology, architecture, and business logic with the final
-   code. Ensure file paths, examples, and planned-versus-implemented status agree.
-5. Review repository status, account for changed files, and report cleanup
-   results, actual verification, and any unresolved issues with reasons.
-
-Useful local cleanup may happen during each implementation task; the final
-task is still required to catch duplication and coupling across their results.
-Do not declare completion while required in-scope cleanup remains unresolved,
-or claim a check passed when it was not run.
-
-## Delegation Policy
-
-Do not spawn SubAgents by default.
-
-If only one meaningful task exists:
-- Main Agent handles it directly.
-- Do not create a SubAgent.
-
-Use SubAgents when the host supports them and all these conditions hold:
-- multiple independent tasks exist.
-- boundaries are clear.
-- parallel execution improves efficiency.
-
-Assess this route for every task plan. Do not default to doing all work alone
-when independent tasks meet these conditions. If the host lacks delegation,
-state that limitation and use Main Agent + `tdd`; do not simulate workers or
-claim parallel execution occurred.
-
-Avoid spawning for:
-- small fixes
-- sequential work
-- shared core file changes
-
-## Task Isolation
-
-Before spawning:
-- documents reflect verified current behavior and the agreed planned changes
-- each task names its file/module scope, dependencies, and acceptance criteria
-- each worker can load the `tdd` skill and its applicable references
-- each worker receives the fallback-prevention rules and relevant contracts
-- no file ownership overlap
-- no module ownership overlap
-- no architecture conflict
-- no business logic conflict
-
-## SubAgent
-
-Allowed:
-- grill
-- tdd
-
-Forbidden:
-- workflow
-- subagent
-- loop
-
-SubAgents:
-- read project knowledge
-- perform lightweight grill
-- load and follow the `tdd` skill, including applicable references
-- implement task
-- keep assigned code clean and report quality findings and document changes
-
-Do not:
-- create project documents
-- modify CONTEXT.md
-- modify ARCHITECTURE.md
-- modify LOGIC.md
-
-Conflicts are returned to Main Agent.
-
-## Supervision Loop
-
-When SubAgents are active, Main Agent internally monitors them.
-
-Default interval:
-3 minutes.
-
-Check:
-- progress
-- context/results
-- blockers
-- scope deviation
-- architecture conflicts
-
-Healthy agents are not interrupted.
-
-Problems:
-- send correction
-- terminate and restart if necessary
-
-Ask human only for real design decisions.
-
-## Acceptance
-
-Main Agent validates:
-- consequential design questions were resolved through grill and documented
-- every implementation task followed its selected execution route and `tdd`
-- delegated work includes behavior-test evidence and was supervised
-- requirements
-- architecture
-- logic
-- tests
-- the final cleanup task completed after integration
-- verified in-scope quality findings were resolved and behavior preserved
-- new recovery paths have documented reasons, bounded retries where applicable,
-  and verified failure behavior; superseded workarounds were removed
-- all three project documents agree with the final implementation
-- each Worker returned a result
-- selected `agentName`, route, Provider, and upstream model match the selector output when execution metadata is available
+Accept only after agreed behavior, execution routes, TDD evidence, documentation, and
+the final cleanup task are verified. Happy-path tests alone do not establish error
+visibility or compatibility. Do not claim unrun checks passed or declare completion
+while required in-scope cleanup or a known regression remains unresolved.

@@ -77,20 +77,20 @@ npx skills add liiiiwh/grill-with-workflow --list
 
 ## 使用示例
 
-安装后，在支持技能的编程助手中明确指定技能：
+安装后，在支持斜杠技能命令的编程助手中输入：
 
 ```text
-使用 grill-with-workflow，初始化当前项目的知识文档。
+/grill-with-workflow 初始化当前项目的知识文档。
 ```
 
 ```text
-使用 grill-with-workflow 实现订单取消功能，先梳理需求、领域术语和业务规则，再决定是否需要拆分任务。
+/grill-with-workflow 实现订单取消功能。
 ```
 
 调用技能后会自动执行文档读取、缺失文档创建及更新流程，无需每次重复指定三个文件名。
 
 ```text
-使用 tdd 为购物车增加优惠券功能，先确认关键行为，然后逐个完成 Red → Green → Refactor。
+/tdd 为购物车增加优惠券功能。
 ```
 
 组合使用时，`grill-with-workflow` 负责整体协调，`tdd` 负责具体实现的测试循环。

@@ -5,6 +5,23 @@ Use delegation for independent tasks with clear ownership and a parallelism bene
 Single tasks, sequential work, and overlapping core changes stay with Main Agent + `tdd`.
 The final cleanup task is dependent work, not a reason to invent parallelism.
 
+## Hard Limit: 5 SubAgent Launches
+
+For one user request, never launch more than **5 SubAgents in total**, including
+replacement workers and restarts. This is a cumulative launch limit, not just a
+concurrency limit. Finishing or stopping a worker does not refund a launch.
+Track the count before every launch, including launches through different tools;
+reserve capacity before a batch so concurrent calls cannot exceed the limit.
+Carry the count through phases, replanning, continuations, context compaction,
+and repeated skill invocations for the same request. Do not split a request to reset it.
+
+Only an explicit user statement permitting **unlimited SubAgent use** removes
+this cap. General approval for parallel work, urgency, or "use more agents" does
+not. Host limits and other applicable restrictions still apply. At the cap,
+reuse available workers without another launch or finish through Main Agent + `tdd`;
+do not stop useful work merely to request a higher limit. Workers still cannot
+spawn further workers, even when the user has lifted the numerical cap.
+
 ## Assignment and Isolation
 
 Main Agent updates project knowledge and resolves shared design decisions before
@@ -43,7 +60,8 @@ results, blockers, scope deviation, and architecture or business-rule conflicts.
 Default review cadence: about three minutes, or sooner when a worker reports a
 blocker or finishes; avoid busy polling and unsupported background-loop claims.
 Do not interrupt healthy workers. Correct deviations; stop or restart a worker
-when needed without discarding unrelated work. Ask users only for real decisions.
+when needed within the launch limit, without discarding unrelated work. Ask users
+only for real decisions.
 
 Review each returned diff and evidence before integration. Reject unjustified recovery,
 duplicate capability, lost errors, or incompatible contracts even if happy-path tests

@@ -72,7 +72,11 @@ Select a route for every implementation task:
 Evaluate delegation every iteration; do not do everything alone when these conditions
 hold. If delegation is unavailable, state the limitation and use Main Agent + `tdd`.
 Do not simulate workers. Delegation changes the executor, never the TDD requirement.
-Follow the delegation, isolation, and supervision rules in the required reference.
+**Hard limit: launch at most 5 SubAgents in total for one user request**, including
+replacements and restarts. Only an explicit user statement permitting unlimited
+SubAgents lifts this limit; phases, continuations, and re-invoking the skill do not
+reset it. At the limit, reuse existing workers or use Main Agent + `tdd`.
+Follow the counting, delegation, isolation, and supervision rules in the reference.
 
 For N implementation tasks, append task N+1: **Cleanup, documentation synchronization,
 and verification**. Name concrete cleanup targets; if none were found, still review
